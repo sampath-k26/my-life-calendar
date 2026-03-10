@@ -14,7 +14,68 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      media: {
+        Row: {
+          created_at: string
+          file_type: string
+          file_url: string
+          id: string
+          memory_id: string
+        }
+        Insert: {
+          created_at?: string
+          file_type: string
+          file_url: string
+          id?: string
+          memory_id: string
+        }
+        Update: {
+          created_at?: string
+          file_type?: string
+          file_url?: string
+          id?: string
+          memory_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "media_memory_id_fkey"
+            columns: ["memory_id"]
+            isOneToOne: false
+            referencedRelation: "memories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      memories: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          mood: string | null
+          text_entry: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          id?: string
+          mood?: string | null
+          text_entry?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          mood?: string | null
+          text_entry?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
