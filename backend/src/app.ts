@@ -44,6 +44,14 @@ app.use(
 );
 app.use(express.json({ limit: "10mb" }));
 
+app.get("/", (_req, res) => {
+  res.status(200).json({
+    name: "LifeCalendar API",
+    status: "ok",
+    health: "/api/health",
+  });
+});
+
 app.use("/api/health", healthRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/memories", memoryRoutes);
