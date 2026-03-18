@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import { env } from "./config/env.js";
+import { connectDatabase } from "./config/database.js";
 import authRoutes from "./routes/authRoutes.js";
 import memoryRoutes from "./routes/memoryRoutes.js";
 import healthRoutes from "./routes/healthRoutes.js";
@@ -53,6 +54,15 @@ app.get("/", (_req, res) => {
 });
 
 app.use("/api/health", healthRoutes);
+app.use("/api", async (_req, res, next) => {
+  try {
+    await connectDatabase();
+    next();
+  } catch (error) {
+    console.error("Database connection failed:", error);
+    res.status(500).json({ message: "Database connection failed" });
+  }
+});
 app.use("/api/auth", authRoutes);
 app.use("/api/memories", memoryRoutes);
 
