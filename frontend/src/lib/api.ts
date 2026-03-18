@@ -1,4 +1,13 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/+$/, "");
+
+const buildApiUrl = (path: string) => {
+  if (!API_BASE_URL) {
+    return path;
+  }
+
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  return `${API_BASE_URL}${normalizedPath}`;
+};
 
 const getToken = () => localStorage.getItem("life-calendar-token");
 
@@ -18,7 +27,7 @@ export const apiRequest = async <T>(path: string, options: RequestOptions = {}):
     headers.set("Authorization", `Bearer ${token}`);
   }
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+  const response = await fetch(buildApiUrl(path), {
     ...options,
     headers,
   });
@@ -46,5 +55,5 @@ export const clearStoredToken = () => {
 export const getAssetUrl = (path: string) => {
   if (!path) return "";
   if (path.startsWith("http")) return path;
-  return `${API_BASE_URL}${path}`;
+  return buildApiUrl(path);
 };
