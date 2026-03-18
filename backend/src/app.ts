@@ -22,7 +22,8 @@ const isAllowedOrigin = (origin: string) => {
     const isHttp = url.protocol === "http:" || url.protocol === "https:";
     const isFrontendPort = url.port === "8080";
     const isIpv4 = /^\d{1,3}(\.\d{1,3}){3}$/.test(url.hostname);
-    return isHttp && isFrontendPort && isIpv4;
+    const isVercelDeployment = env.allowVercelOrigins && url.protocol === "https:" && url.hostname.endsWith(".vercel.app");
+    return isVercelDeployment || (isHttp && isFrontendPort && isIpv4);
   } catch {
     return false;
   }
