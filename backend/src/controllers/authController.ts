@@ -38,6 +38,7 @@ export const register = async (req: express.Request, res: express.Response) => {
       },
     });
   } catch (error) {
+    console.error("Register failed:", error);
     return res.status(500).json({ message: "Could not create account", error });
   }
 };
@@ -66,6 +67,7 @@ export const login = async (req: express.Request, res: express.Response) => {
       },
     });
   } catch (error) {
+    console.error("Login failed:", error);
     return res.status(500).json({ message: "Could not log in", error });
   }
 };
@@ -84,4 +86,3 @@ export const getCurrentUser = async (req: AuthRequest, res: express.Response) =>
     },
   });
 };
-
