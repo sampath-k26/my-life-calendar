@@ -4,15 +4,28 @@ import { ArrowLeft, Image, Video, Mic, Save, Trash2, Loader2 } from "lucide-reac
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import MoodPicker from "./MoodPicker";
-import { useMemoryForDate, useSaveMemory, useUploadMedia, useDeleteMedia } from "@/hooks/useMemories";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { getAssetUrl } from "@/lib/api";
+import { useDeleteMedia, useMemoryForDate, useSaveMemory, useUploadMedia } from "@/hooks/useMemories";
+import LoadingState from "./LoadingState";
 
 interface DailyMemoryPageProps {
   date: Date;
   onBack: () => void;
 }
+
+const getUploadType = (file: File) => {
+  if (file.type.startsWith("video/")) {
+    return "video";
+  }
+
+  if (file.type.startsWith("audio/")) {
+    return "audio";
+  }
+
+  return "photo";
+};
 
 const DailyMemoryPage = ({ date, onBack }: DailyMemoryPageProps) => {
   const dateStr = format(date, "yyyy-MM-dd");
@@ -44,6 +57,15 @@ const DailyMemoryPage = ({ date, onBack }: DailyMemoryPageProps) => {
     }
   };
 
+  const openFilePicker = (accept: string) => {
+    if (!fileInputRef.current) {
+      return;
+    }
+
+    fileInputRef.current.accept = accept;
+    fileInputRef.current.click();
+  };
+
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files?.length) return;
@@ -56,9 +78,7 @@ const DailyMemoryPage = ({ date, onBack }: DailyMemoryPageProps) => {
     }
 
     for (const file of Array.from(files)) {
-      let fileType = "photo";
-      if (file.type.startsWith("video/")) fileType = "video";
-      else if (file.type.startsWith("audio/")) fileType = "audio";
+      const fileType = getUploadType(file);
 
       try {
         await uploadMedia.mutateAsync({ memoryId, file, fileType });
@@ -83,11 +103,7 @@ const DailyMemoryPage = ({ date, onBack }: DailyMemoryPageProps) => {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
-    );
+    return <LoadingState />;
   }
 
   return (
@@ -116,7 +132,6 @@ const DailyMemoryPage = ({ date, onBack }: DailyMemoryPageProps) => {
         className="min-h-[150px] resize-none bg-secondary/50 border-border/50 focus:bg-card"
       />
 
-      {/* Media display */}
       {memory?.media && memory.media.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
           {memory.media.map((m) => (
@@ -143,7 +158,6 @@ const DailyMemoryPage = ({ date, onBack }: DailyMemoryPageProps) => {
         </div>
       )}
 
-      {/* Actions */}
       <div className="flex gap-2">
         <input
           ref={fileInputRef}
@@ -153,28 +167,13 @@ const DailyMemoryPage = ({ date, onBack }: DailyMemoryPageProps) => {
           onChange={handleFileUpload}
           className="hidden"
         />
-        <Button variant="secondary" size="sm" onClick={() => {
-          if (fileInputRef.current) {
-            fileInputRef.current.accept = "image/*";
-            fileInputRef.current.click();
-          }
-        }}>
+        <Button variant="secondary" size="sm" onClick={() => openFilePicker("image/*")}>
           <Image className="h-4 w-4 mr-1" /> Photo
         </Button>
-        <Button variant="secondary" size="sm" onClick={() => {
-          if (fileInputRef.current) {
-            fileInputRef.current.accept = "video/*";
-            fileInputRef.current.click();
-          }
-        }}>
+        <Button variant="secondary" size="sm" onClick={() => openFilePicker("video/*")}>
           <Video className="h-4 w-4 mr-1" /> Video
         </Button>
-        <Button variant="secondary" size="sm" onClick={() => {
-          if (fileInputRef.current) {
-            fileInputRef.current.accept = "audio/*";
-            fileInputRef.current.click();
-          }
-        }}>
+        <Button variant="secondary" size="sm" onClick={() => openFilePicker("audio/*")}>
           <Mic className="h-4 w-4 mr-1" /> Audio
         </Button>
         <div className="flex-1" />

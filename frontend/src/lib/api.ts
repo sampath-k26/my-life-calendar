@@ -1,3 +1,5 @@
+import { STORAGE_KEYS } from "@/lib/constants";
+
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/+$/, "");
 
 const buildApiUrl = (path: string) => {
@@ -9,7 +11,7 @@ const buildApiUrl = (path: string) => {
   return `${API_BASE_URL}${normalizedPath}`;
 };
 
-const getToken = () => localStorage.getItem("life-calendar-token");
+const getToken = () => localStorage.getItem(STORAGE_KEYS.authToken);
 
 type RequestOptions = RequestInit & {
   isFormData?: boolean;
@@ -45,11 +47,11 @@ export const apiRequest = async <T>(path: string, options: RequestOptions = {}):
 };
 
 export const setStoredToken = (token: string) => {
-  localStorage.setItem("life-calendar-token", token);
+  localStorage.setItem(STORAGE_KEYS.authToken, token);
 };
 
 export const clearStoredToken = () => {
-  localStorage.removeItem("life-calendar-token");
+  localStorage.removeItem(STORAGE_KEYS.authToken);
 };
 
 export const getAssetUrl = (path: string) => {

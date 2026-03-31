@@ -1,18 +1,16 @@
 import { format } from "date-fns";
 import { useOnThisDay } from "@/hooks/useMemories";
-import { Loader2, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
-import { getAssetUrl } from "@/lib/api";
+import LoadingState from "@/components/LoadingState";
+import MemoryMediaStrip from "@/components/MemoryMediaStrip";
+import { formatMemoryDate } from "@/lib/date";
 
 const OnThisDay = () => {
   const { data: memories, isLoading } = useOnThisDay();
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
-    );
+    return <LoadingState />;
   }
 
   return (
@@ -41,22 +39,14 @@ const OnThisDay = () => {
             <div className="flex items-center gap-2">
               <span className="text-lg">{memory.mood || "📝"}</span>
               <p className="font-medium text-sm">
-                {format(new Date(memory.date + "T00:00:00"), "yyyy")}
+                {formatMemoryDate(memory.date, "yyyy")}
               </p>
             </div>
             {memory.textEntry && (
               <p className="text-sm text-muted-foreground">{memory.textEntry}</p>
             )}
             {memory.media && memory.media.length > 0 && (
-              <div className="flex gap-2 overflow-x-auto pb-1">
-                {memory.media.map((m) => (
-                  <div key={m.id} className="h-20 w-20 flex-shrink-0 rounded-md overflow-hidden bg-muted">
-                    {m.fileType === "photo" && (
-                      <img src={getAssetUrl(m.fileUrl)} alt="" className="w-full h-full object-cover" />
-                    )}
-                  </div>
-                ))}
-              </div>
+              <MemoryMediaStrip items={memory.media.filter((item) => item.fileType === "photo")} />
             )}
           </motion.div>
         ))

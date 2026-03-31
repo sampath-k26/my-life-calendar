@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   addDays,
   addMonths,
@@ -17,10 +17,10 @@ import {
 } from "date-fns";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useMemoriesForMonth } from "@/hooks/useMemories";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const MOOD_COLORS: Record<string, string> = {
   "😊": "bg-warm-glow/30",
@@ -35,29 +35,32 @@ interface CalendarViewProps {
   selectedDate: Date | null;
 }
 
+const MONTH_OPTIONS = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+
+const WEEK_DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+const MIN_DATE = new Date(1900, 0, 1);
+
 const CalendarView = ({ onSelectDate, selectedDate }: CalendarViewProps) => {
   const today = startOfDay(new Date());
-  const minDate = new Date(1900, 0, 1);
   const [currentMonth, setCurrentMonth] = useState(startOfMonth(today));
   const [draftYear, setDraftYear] = useState(today.getFullYear());
   const [draftMonth, setDraftMonth] = useState(today.getMonth());
   const [draftDay, setDraftDay] = useState(today.getDate());
   const { data: memories } = useMemoriesForMonth(currentMonth.getFullYear(), currentMonth.getMonth());
-
-  const monthOptions = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
-  ];
 
   const yearOptions = useMemo(() => {
     const years: number[] = [];
@@ -78,15 +81,20 @@ const CalendarView = ({ onSelectDate, selectedDate }: CalendarViewProps) => {
   const calStart = startOfWeek(monthStart);
   const calEnd = endOfWeek(monthEnd);
 
-  const days: Date[] = [];
-  let day = calStart;
-  while (day <= calEnd) {
-    days.push(day);
-    day = addDays(day, 1);
-  }
+  const days = useMemo(() => {
+    const calendarDays: Date[] = [];
+    let day = calStart;
 
-  const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-  const isAtMinMonth = currentMonth.getFullYear() === minDate.getFullYear() && currentMonth.getMonth() === minDate.getMonth();
+    while (day <= calEnd) {
+      calendarDays.push(day);
+      day = addDays(day, 1);
+    }
+
+    return calendarDays;
+  }, [calEnd, calStart]);
+
+  const isAtMinMonth =
+    currentMonth.getFullYear() === MIN_DATE.getFullYear() && currentMonth.getMonth() === MIN_DATE.getMonth();
   const isAtMaxMonth = currentMonth.getFullYear() === today.getFullYear() && currentMonth.getMonth() === today.getMonth();
 
   const getMaxDayForMonth = (year: number, month: number) => {
@@ -119,7 +127,7 @@ const CalendarView = ({ onSelectDate, selectedDate }: CalendarViewProps) => {
   };
 
   const handleMonthNavigation = (nextMonthDate: Date) => {
-    if (isBefore(nextMonthDate, startOfMonth(minDate)) || isAfter(nextMonthDate, startOfMonth(today))) {
+    if (isBefore(nextMonthDate, startOfMonth(MIN_DATE)) || isAfter(nextMonthDate, startOfMonth(today))) {
       return;
     }
 
@@ -159,11 +167,13 @@ const CalendarView = ({ onSelectDate, selectedDate }: CalendarViewProps) => {
             <SelectValue placeholder="Select day" />
           </SelectTrigger>
           <SelectContent>
-            {Array.from({ length: getMaxDayForMonth(draftYear, draftMonth) }, (_, index) => index + 1).map((dayValue) => (
-              <SelectItem key={dayValue} value={String(dayValue)}>
-                {dayValue}
-              </SelectItem>
-            ))}
+            {Array.from({ length: getMaxDayForMonth(draftYear, draftMonth) }, (_, index) => index + 1).map(
+              (dayValue) => (
+                <SelectItem key={dayValue} value={String(dayValue)}>
+                  {dayValue}
+                </SelectItem>
+              ),
+            )}
           </SelectContent>
         </Select>
 
@@ -180,7 +190,7 @@ const CalendarView = ({ onSelectDate, selectedDate }: CalendarViewProps) => {
             <SelectValue placeholder="Select month" />
           </SelectTrigger>
           <SelectContent>
-            {monthOptions.map((monthLabel, index) => {
+            {MONTH_OPTIONS.map((monthLabel, index) => {
               const isDisabled = draftYear === today.getFullYear() && index > today.getMonth();
               return (
                 <SelectItem key={monthLabel} value={String(index)} disabled={isDisabled}>
@@ -218,7 +228,7 @@ const CalendarView = ({ onSelectDate, selectedDate }: CalendarViewProps) => {
       </div>
 
       <div className="grid grid-cols-7 gap-1 mb-2">
-        {weekDays.map((d) => (
+        {WEEK_DAYS.map((d) => (
           <div key={d} className="text-center text-xs font-medium text-muted-foreground py-2">
             {d}
           </div>
@@ -234,12 +244,12 @@ const CalendarView = ({ onSelectDate, selectedDate }: CalendarViewProps) => {
           const isSelected = selectedDate && isSameDay(d, selectedDate);
           const isToday = isSameDay(d, today);
           const isFutureDate = isAfter(startOfDay(d), today);
-          const isBeforeMinimumDate = isBefore(startOfDay(d), minDate);
+          const isBeforeMinimumDate = isBefore(startOfDay(d), MIN_DATE);
           const isDisabled = isFutureDate || isBeforeMinimumDate;
 
           return (
             <motion.button
-              key={i}
+              key={dateStr}
               whileTap={isDisabled ? undefined : { scale: 0.95 }}
               onClick={() => {
                 if (!isDisabled) {

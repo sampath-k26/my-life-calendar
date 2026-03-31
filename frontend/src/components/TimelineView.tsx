@@ -1,18 +1,14 @@
-import { format } from "date-fns";
 import { useAllMemories } from "@/hooks/useMemories";
-import { Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
-import { getAssetUrl } from "@/lib/api";
+import LoadingState from "@/components/LoadingState";
+import MemoryMediaStrip from "@/components/MemoryMediaStrip";
+import { formatMemoryDate } from "@/lib/date";
 
 const TimelineView = () => {
   const { data: memories, isLoading } = useAllMemories();
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
-    );
+    return <LoadingState />;
   }
 
   if (!memories?.length) {
@@ -38,33 +34,14 @@ const TimelineView = () => {
           <div className="flex items-center gap-2">
             <span className="text-lg">{memory.mood || "📝"}</span>
             <div>
-              <p className="font-medium text-sm">{format(new Date(memory.date + "T00:00:00"), "EEEE, MMMM d, yyyy")}</p>
+              <p className="font-medium text-sm">{formatMemoryDate(memory.date, "EEEE, MMMM d, yyyy")}</p>
             </div>
           </div>
           {memory.textEntry && (
             <p className="text-sm text-muted-foreground line-clamp-3">{memory.textEntry}</p>
           )}
           {memory.media && memory.media.length > 0 && (
-            <div className="flex gap-2 overflow-x-auto pb-1">
-              {memory.media.slice(0, 4).map((m) => (
-                <div key={m.id} className="h-16 w-16 flex-shrink-0 rounded-md overflow-hidden bg-muted">
-                  {m.fileType === "photo" && (
-                    <img src={getAssetUrl(m.fileUrl)} alt="" className="w-full h-full object-cover" />
-                  )}
-                  {m.fileType === "video" && (
-                    <video src={getAssetUrl(m.fileUrl)} className="w-full h-full object-cover" />
-                  )}
-                  {m.fileType === "audio" && (
-                    <div className="flex items-center justify-center h-full text-muted-foreground text-xs">🎵</div>
-                  )}
-                </div>
-              ))}
-              {memory.media.length > 4 && (
-                <div className="h-16 w-16 flex-shrink-0 rounded-md bg-muted flex items-center justify-center text-xs text-muted-foreground">
-                  +{memory.media.length - 4}
-                </div>
-              )}
-            </div>
+            <MemoryMediaStrip items={memory.media} compact />
           )}
         </motion.div>
       ))}
