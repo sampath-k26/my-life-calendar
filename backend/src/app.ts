@@ -3,6 +3,8 @@ import cors from "cors";
 import { env } from "./config/env.js";
 import { connectDatabase } from "./config/database.js";
 import authRoutes from "./routes/authRoutes.js";
+import contextualSearchRoutes from "./routes/contextualSearchRoutes.js";
+import mediaGalleryRoutes from "./features/mediaGallery/mediaGallery.routes.js";
 import memoryRoutes from "./routes/memoryRoutes.js";
 import healthRoutes from "./routes/healthRoutes.js";
 
@@ -64,6 +66,8 @@ app.use("/api", async (_req, res, next) => {
   }
 });
 app.use("/api/auth", authRoutes);
+app.use("/api/contextual-search", contextualSearchRoutes);
+app.use("/api/media-gallery", mediaGalleryRoutes);
 app.use("/api/memories", memoryRoutes);
 
 export default app;

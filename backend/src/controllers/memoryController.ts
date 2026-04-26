@@ -1,5 +1,6 @@
 import type express from "express";
 import { Memory } from "../models/Memory.js";
+import { saveMemoryForDate } from "../services/memory.service.js";
 import type { AuthRequest } from "../types/auth.js";
 import { deleteFileFromCloudinary, uploadFileToCloudinary } from "../utils/cloudinary.js";
 import { formatMemory } from "../utils/memoryFormatter.js";
@@ -62,20 +63,8 @@ export const getMemoryByDate = async (req: AuthRequest, res: express.Response) =
 };
 
 export const saveMemory = async (req: AuthRequest, res: express.Response) => {
-  const { textEntry, mood } = req.body ?? {};
-  const update: Record<string, unknown> = {};
-
-  if (textEntry !== undefined) update.textEntry = String(textEntry);
-  if (mood !== undefined) update.mood = String(mood);
-
-  const memory = await Memory.findOneAndUpdate(
-    { userId: req.userId, date: req.params.date },
-    {
-      $set: update,
-      $setOnInsert: { userId: req.userId, date: req.params.date, media: [] },
-    },
-    { new: true, upsert: true }
-  );
+  const { textEntry } = req.body ?? {};
+  const memory = await saveMemoryForDate({ userId: req.userId, date: req.params.date, textEntry });
 
   return res.json(formatMemory(memory));
 };

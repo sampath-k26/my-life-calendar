@@ -3,16 +3,16 @@ import { format } from "date-fns";
 import { ArrowLeft, Image, Video, Mic, Save, Trash2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import MoodPicker from "./MoodPicker";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { getAssetUrl } from "@/lib/api";
+import { getMoodDisplay } from "@/lib/mood";
 import { useDeleteMedia, useMemoryForDate, useSaveMemory, useUploadMedia } from "@/hooks/useMemories";
 import LoadingState from "./LoadingState";
 
 interface DailyMemoryPageProps {
   date: Date;
-  onBack: () => void;
+  onBack?: () => void;
 }
 
 const getUploadType = (file: File) => {
@@ -35,22 +35,20 @@ const DailyMemoryPage = ({ date, onBack }: DailyMemoryPageProps) => {
   const deleteMedia = useDeleteMedia();
 
   const [text, setText] = useState("");
-  const [mood, setMood] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const detectedMood = getMoodDisplay(memory?.mood);
 
   useEffect(() => {
     if (memory) {
       setText(memory.textEntry || "");
-      setMood(memory.mood || "");
     } else {
       setText("");
-      setMood("");
     }
   }, [memory]);
 
   const handleSave = async () => {
     try {
-      await saveMemory.mutateAsync({ date: dateStr, textEntry: text, mood });
+      await saveMemory.mutateAsync({ date: dateStr, textEntry: text });
       toast.success("Memory saved");
     } catch {
       toast.error("Failed to save");
@@ -73,7 +71,7 @@ const DailyMemoryPage = ({ date, onBack }: DailyMemoryPageProps) => {
     // Ensure memory exists first
     let memoryId = memory?.id;
     if (!memoryId) {
-      const saved = await saveMemory.mutateAsync({ date: dateStr, textEntry: text, mood });
+      const saved = await saveMemory.mutateAsync({ date: dateStr, textEntry: text });
       memoryId = saved.id;
     }
 
@@ -114,16 +112,16 @@ const DailyMemoryPage = ({ date, onBack }: DailyMemoryPageProps) => {
       className="space-y-6"
     >
       <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" onClick={onBack}>
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
+        {onBack && (
+          <Button variant="ghost" size="icon" onClick={onBack}>
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+        )}
         <div>
           <h2 className="text-xl font-display">{format(date, "EEEE")}</h2>
           <p className="text-sm text-muted-foreground">{format(date, "MMMM d, yyyy")}</p>
         </div>
       </div>
-
-      <MoodPicker selected={mood} onSelect={setMood} />
 
       <Textarea
         value={text}
@@ -131,6 +129,13 @@ const DailyMemoryPage = ({ date, onBack }: DailyMemoryPageProps) => {
         placeholder="What happened today? How did you feel?"
         className="min-h-[150px] resize-none bg-secondary/50 border-border/50 focus:bg-card"
       />
+
+      {memory?.mood && (
+        <div className="flex items-center gap-2 rounded-lg bg-secondary/50 px-3 py-2 text-sm text-muted-foreground">
+          <span>{detectedMood.emoji}</span>
+          <span>Detected mood: {detectedMood.label}</span>
+        </div>
+      )}
 
       {memory?.media && memory.media.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">

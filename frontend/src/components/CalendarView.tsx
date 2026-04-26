@@ -21,14 +21,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useMemoriesForMonth } from "@/hooks/useMemories";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-
-const MOOD_COLORS: Record<string, string> = {
-  "😊": "bg-warm-glow/30",
-  "😢": "bg-sky/30",
-  "🤩": "bg-accent/30",
-  "😌": "bg-sage/30",
-  "😴": "bg-lavender/30",
-};
+import { getMoodCalendarClass } from "@/lib/mood";
 
 interface CalendarViewProps {
   onSelectDate: (date: Date) => void;
@@ -239,6 +232,7 @@ const CalendarView = ({ onSelectDate, selectedDate }: CalendarViewProps) => {
         {days.map((d, i) => {
           const dateStr = format(d, "yyyy-MM-dd");
           const mood = memoryMap.get(dateStr);
+          const moodColorClass = getMoodCalendarClass(mood);
           const hasMemory = memoryMap.has(dateStr);
           const isCurrentMonth = isSameMonth(d, currentMonth);
           const isSelected = selectedDate && isSameDay(d, selectedDate);
@@ -264,8 +258,8 @@ const CalendarView = ({ onSelectDate, selectedDate }: CalendarViewProps) => {
                 isDisabled && "cursor-not-allowed opacity-25",
                 isSelected && "ring-2 ring-primary bg-primary/10",
                 isToday && !isSelected && "font-bold text-primary",
-                hasMemory && mood && MOOD_COLORS[mood],
-                hasMemory && !mood && "bg-primary/10"
+                hasMemory && moodColorClass,
+                hasMemory && !moodColorClass && "bg-primary/10"
               )}
             >
               <span>{format(d, "d")}</span>
